@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quizlet Learn Clone</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    textarea {
+      width: 100%;
+      height: 250px;
+      font-family: monospace;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .prompt {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      font-size: 18px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .correct {
+      color: green;
+    }
+
+    .incorrect {
+      color: red;
+    }
+
+    .progress {
+      margin-top: 15px;
+      color: #555;
+    }
+
+    .streak {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Quizlet Learn (Clone)</h1>
+
+<div class="container">
+  <!-- INPUT SIDE -->
+  <div class="card">
+    <h2>Paste Quizlet Set</h2>
+    <p>Format: <code>term[TAB]answer1;answer2</code></p>
+    <textarea id="dataInput" placeholder="adult	大人;おとな"></textarea>
+    <button onclick="startLearn()">Start Learn Mode</button>
+  </div>
+
+  <!-- LEARN SIDE -->
+  <div class="card">
+    <h2>Learn Mode</h2>
+    <div id="learnArea">
+      <p>Paste data and click <strong>Start Learn Mode</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  let cards = [];
+  let queue = [];
+  let current = null;
+  let lastCard = null;
+
+  function startLearn() {
+    const raw = document.getElementById("dataInput").value.trim();
+    if (!raw) return;
+
+    cards = raw.split("\n").map(line => {
+      const [term, answers] = line.split("\t");
+      return {
+        term: term.trim(),
+        answers: answers.split(";").map(a => a.trim().toLowerCase()),
+        streak: 0
+      };
+    });
+
+    lastCard = null;
+    nextCard();
+  }
+
+  function rebuildQueue() {
+    queue = cards.filter(card => card.streak < 2);
+    queue.sort(() => Math.random() - 0.5);
+  }
+
+  function nextCard() {
+    rebuildQueue();
+
+    if (queue.length === 0) {
+      document.getElementById("learnArea").innerHTML = `
+        <h3>🎉 All cards mastered!</h3>
+        <p>You answered every card correctly twice.</p>
+      `;
+      return;
+    }
+
+    // Avoid repeating the same card twice unless unavoidable
+    if (queue.length > 1 && lastCard === queue[0]) {
+      queue.push(queue.shift());
+    }
+
+    current = queue[0];
+    lastCard = current;
+
+    document.getElementById("learnArea").innerHTML = `
+      <div class="prompt">${current.term}</div>
+      <input type="text" id="answerInput" />
+      <button onclick="checkAnswer()">Check</button>
+      <div class="feedback" id="feedback"></div>
+      <div class="streak">Progress: ${current.streak} / 2</div>
+      <div class="progress">Remaining cards: ${queue.length}</div>
+    `;
+
+    const input = document.getElementById("answerInput");
+
+    // Focus + highlight input every time
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 0);
+
+    // ENTER submits
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        checkAnswer();
+      }
+    });
+  }
+
+  function checkAnswer() {
+    const input = document
+      .getElementById("answerInput")
+      .value
+      .trim()
+      .toLowerCase();
+
+    const feedback = document.getElementById("feedback");
+
+    if (current.answers.includes(input)) {
+      current.streak++;
+      feedback.textContent = "Correct!";
+      feedback.className = "feedback correct";
+      setTimeout(nextCard, 600);
+    } else {
+      current.streak = 0;
+      feedback.innerHTML = `
+        Incorrect.<br>
+        Correct answers: <strong>${current.answers.join(", ")}</strong>
+      `;
+      feedback.className = "feedback incorrect";
+    }
+  }
+</script>
+
+</body>
+</html>
