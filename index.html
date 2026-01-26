@@ -11,10 +11,6 @@
       padding: 20px;
     }
 
-    h1 {
-      margin-top: 0;
-    }
-
     .container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -62,13 +58,8 @@
       font-weight: bold;
     }
 
-    .correct {
-      color: green;
-    }
-
-    .incorrect {
-      color: red;
-    }
+    .correct { color: green; }
+    .incorrect { color: red; }
 
     .progress {
       margin-top: 15px;
@@ -87,7 +78,6 @@
 <h1>Quizlet Learn (Clone)</h1>
 
 <div class="container">
-  <!-- INPUT SIDE -->
   <div class="card">
     <h2>Paste Quizlet Set</h2>
     <p>Format: <code>term[TAB]answer1;answer2</code></p>
@@ -95,7 +85,6 @@
     <button onclick="startLearn()">Start Learn Mode</button>
   </div>
 
-  <!-- LEARN SIDE -->
   <div class="card">
     <h2>Learn Mode</h2>
     <div id="learnArea">
@@ -109,6 +98,7 @@
   let queue = [];
   let current = null;
   let lastCard = null;
+  let correctionMode = false;
 
   function startLearn() {
     const raw = document.getElementById("dataInput").value.trim();
@@ -124,6 +114,7 @@
     });
 
     lastCard = null;
+    correctionMode = false;
     nextCard();
   }
 
@@ -143,48 +134,59 @@
       return;
     }
 
-    // Avoid repeating the same card twice unless unavoidable
-    if (queue.length > 1 && lastCard === queue[0]) {
+    if (queue.length > 1 && queue[0] === lastCard) {
       queue.push(queue.shift());
     }
 
     current = queue[0];
     lastCard = current;
+    correctionMode = false;
 
+    renderPrompt(false);
+  }
+
+  function renderPrompt(showAnswers) {
     document.getElementById("learnArea").innerHTML = `
       <div class="prompt">${current.term}</div>
       <input type="text" id="answerInput" />
       <button onclick="checkAnswer()">Check</button>
-      <div class="feedback" id="feedback"></div>
+      <div class="feedback" id="feedback">
+        ${showAnswers ? `Correct answers: <strong>${current.answers.join(", ")}</strong>` : ""}
+      </div>
       <div class="streak">Progress: ${current.streak} / 2</div>
       <div class="progress">Remaining cards: ${queue.length}</div>
     `;
 
     const input = document.getElementById("answerInput");
-
-    // Focus + highlight input every time
     setTimeout(() => {
       input.focus();
       input.select();
     }, 0);
 
-    // ENTER submits
     input.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        checkAnswer();
-      }
+      if (e.key === "Enter") checkAnswer();
     });
   }
 
   function checkAnswer() {
-    const input = document
-      .getElementById("answerInput")
-      .value
-      .trim()
-      .toLowerCase();
-
+    const inputEl = document.getElementById("answerInput");
+    const input = inputEl.value.trim().toLowerCase();
     const feedback = document.getElementById("feedback");
 
+    // Correction step after a wrong answer
+    if (correctionMode) {
+      if (current.answers.includes(input)) {
+        feedback.textContent = "✔ Locked in. You'll see this again.";
+        feedback.className = "feedback correct";
+        setTimeout(nextCard, 700);
+      } else {
+        feedback.textContent = "Type the correct answer to continue.";
+        feedback.className = "feedback incorrect";
+      }
+      return;
+    }
+
+    // Normal checking
     if (current.answers.includes(input)) {
       current.streak++;
       feedback.textContent = "Correct!";
@@ -192,11 +194,15 @@
       setTimeout(nextCard, 600);
     } else {
       current.streak = 0;
+      correctionMode = true;
       feedback.innerHTML = `
         Incorrect.<br>
-        Correct answers: <strong>${current.answers.join(", ")}</strong>
+        Correct answers: <strong>${current.answers.join(", ")}</strong><br>
+        <em>Please type the correct answer to continue.</em>
       `;
       feedback.className = "feedback incorrect";
+      inputEl.value = "";
+      inputEl.focus();
     }
   }
 </script>
