@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Quizlet Learn Clone</title>
+  <title>Quizlet Learn Clone with Save</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -10,7 +10,6 @@
       margin: 0;
       padding: 20px;
     }
-
     .container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -18,7 +17,6 @@
       max-width: 1000px;
       margin: auto;
     }
-
     textarea {
       width: 100%;
       height: 250px;
@@ -26,46 +24,38 @@
       padding: 10px;
       box-sizing: border-box;
     }
-
     button {
       padding: 10px 16px;
       font-size: 16px;
       cursor: pointer;
       margin-top: 10px;
     }
-
     .card {
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-
     .prompt {
       font-size: 24px;
       margin-bottom: 15px;
     }
-
     input[type="text"] {
       width: 100%;
       font-size: 18px;
       padding: 8px;
       box-sizing: border-box;
     }
-
     .feedback {
       margin-top: 10px;
       font-weight: bold;
     }
-
     .correct { color: green; }
     .incorrect { color: red; }
-
     .progress {
       margin-top: 15px;
       color: #555;
     }
-
     .streak {
       margin-top: 8px;
       font-size: 14px;
@@ -75,14 +65,14 @@
 </head>
 <body>
 
-<h1>Quizlet Learn (Clone)</h1>
+<h1>Quizlet Learn (Clone with Save)</h1>
 
 <div class="container">
   <div class="card">
     <h2>Paste Quizlet Set</h2>
     <p>Format: <code>term[TAB]answer1;answer2</code></p>
     <textarea id="dataInput" placeholder="adult	大人;おとな"></textarea>
-    <button onclick="startLearn()">Start Learn Mode</button>
+    <button onclick="startLearn(false)">Start Learn Mode</button>
   </div>
 
   <div class="card">
@@ -100,27 +90,49 @@
   let lastCard = null;
   let correctionMode = false;
 
-  function startLearn() {
-    const raw = document.getElementById("dataInput").value.trim();
-    if (!raw) return;
-
-    cards = raw.split("\n").map(line => {
-      const [term, answers] = line.split("\t");
-      return {
-        term: term.trim(),
-        answers: answers.split(";").map(a => a.trim().toLowerCase()),
-        streak: 0
-      };
-    });
-
-    lastCard = null;
-    correctionMode = false;
-    nextCard();
+  // Save to localStorage
+  function saveProgress() {
+    localStorage.setItem('quizletLearn', JSON.stringify(cards));
   }
 
+  // Load from localStorage
+  function loadProgress() {
+    const saved = localStorage.getItem('quizletLearn');
+    if (!saved) return false;
+    try {
+      cards = JSON.parse(saved);
+      lastCard = null;
+      correctionMode = false;
+      return true;
+    } catch(e) {
+      console.error("Failed to load saved session:", e);
+      return false;
+    }
+  }
+
+  // Rebuild the queue of unmastered cards
   function rebuildQueue() {
-    queue = cards.filter(card => card.streak < 2);
+    queue = cards.filter(c => c.streak < 2);
     queue.sort(() => Math.random() - 0.5);
+  }
+
+  function startLearn(fromSaved) {
+    if (!fromSaved) {
+      const raw = document.getElementById("dataInput").value.trim();
+      if (!raw) return;
+      cards = raw.split("\n").map(line => {
+        const [term, answers] = line.split("\t");
+        return {
+          term: term.trim(),
+          answers: answers.split(";").map(a => a.trim().toLowerCase()),
+          streak: 0
+        };
+      });
+    }
+    lastCard = null;
+    correctionMode = false;
+    saveProgress();
+    nextCard();
   }
 
   function nextCard() {
@@ -131,6 +143,7 @@
         <h3>🎉 All cards mastered!</h3>
         <p>You answered every card correctly twice.</p>
       `;
+      localStorage.removeItem('quizletLearn');
       return;
     }
 
@@ -141,7 +154,6 @@
     current = queue[0];
     lastCard = current;
     correctionMode = false;
-
     renderPrompt(false);
   }
 
@@ -178,7 +190,10 @@
       if (current.answers.includes(input)) {
         feedback.textContent = "✔ Locked in. You'll see this again.";
         feedback.className = "feedback correct";
-        setTimeout(nextCard, 700);
+        setTimeout(() => {
+          saveProgress();
+          nextCard();
+        }, 700);
       } else {
         feedback.textContent = "Type the correct answer to continue.";
         feedback.className = "feedback incorrect";
@@ -191,6 +206,7 @@
       current.streak++;
       feedback.textContent = "Correct!";
       feedback.className = "feedback correct";
+      saveProgress();
       setTimeout(nextCard, 600);
     } else {
       current.streak = 0;
@@ -203,8 +219,23 @@
       feedback.className = "feedback incorrect";
       inputEl.value = "";
       inputEl.focus();
+      saveProgress();
     }
   }
+
+  // On page load, check for saved session
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('quizletLearn');
+    if (saved) {
+      if (confirm("Resume previous session?")) {
+        if (loadProgress()) {
+          startLearn(true);
+          return;
+        }
+      }
+      localStorage.removeItem('quizletLearn');
+    }
+  });
 </script>
 
 </body>
