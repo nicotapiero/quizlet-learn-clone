@@ -62,6 +62,48 @@
       font-size: 14px;
       color: #666;
     }
+
+    /* Preset selector styles */
+    .preset-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .preset-row label {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .preset-row select {
+      flex: 1;
+      font-size: 15px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .preset-row button {
+      margin-top: 0;
+      white-space: nowrap;
+    }
+    .divider {
+      text-align: center;
+      color: #999;
+      margin: 10px 0 6px;
+      font-size: 13px;
+      position: relative;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      display: inline-block;
+      width: 38%;
+      height: 1px;
+      background: #ddd;
+      vertical-align: middle;
+      margin: 0 6px;
+    }
   </style>
 </head>
 <body>
@@ -72,6 +114,18 @@
   <!-- Paste Mode -->
   <div class="card" id="pasteCard">
     <h2>Paste Quizlet Set</h2>
+
+    <!-- Preset selector -->
+    <div class="preset-row">
+      <label for="presetSelect">Preset:</label>
+      <select id="presetSelect">
+        <option value="">— choose a preset set —</option>
+      </select>
+      <button onclick="loadPreset()">Load</button>
+    </div>
+
+    <div class="divider">or paste your own</div>
+
     <p>Format: <code>term[TAB]answer1;answer2</code></p>
     <textarea id="dataInput" placeholder="adult	大人;おとな"></textarea>
     <button onclick="startLearn(false)">Start Learn Mode</button>
@@ -84,6 +138,7 @@
   </div>
 </div>
 
+<script src="sets.js"></script>
 <script>
   let cards = [];
   let queue = [];
@@ -91,6 +146,24 @@
   let lastCard = null;
   let correctionMode = false;
   let isTransitioning = false;
+
+  // Populate the preset dropdown from sets.js
+  function populatePresets() {
+    const select = document.getElementById("presetSelect");
+    PRESET_SETS.forEach((set, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = set.name;
+      select.appendChild(opt);
+    });
+  }
+
+  function loadPreset() {
+    const select = document.getElementById("presetSelect");
+    const idx = select.value;
+    if (idx === "") return;
+    document.getElementById("dataInput").value = PRESET_SETS[idx].data;
+  }
 
   function showLearnMode() {
     document.getElementById("pasteCard").classList.add("hidden");
@@ -250,6 +323,9 @@
       saveProgress();
     }
   }
+
+  // Init
+  populatePresets();
 
   window.addEventListener('load', () => {
     const saved = localStorage.getItem('quizletLearn');
