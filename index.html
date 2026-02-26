@@ -89,13 +89,12 @@
   let current = null;
   let lastCard = null;
   let correctionMode = false;
+  let isTransitioning = false; // ✅ prevents enter spam skipping
 
-  // Save to localStorage
   function saveProgress() {
     localStorage.setItem('quizletLearn', JSON.stringify(cards));
   }
 
-  // Load from localStorage
   function loadProgress() {
     const saved = localStorage.getItem('quizletLearn');
     if (!saved) return false;
@@ -110,7 +109,6 @@
     }
   }
 
-  // Rebuild the queue of unmastered cards
   function rebuildQueue() {
     queue = cards.filter(c => c.streak < 2);
     queue.sort(() => Math.random() - 0.5);
@@ -120,6 +118,7 @@
     if (!fromSaved) {
       const raw = document.getElementById("dataInput").value.trim();
       if (!raw) return;
+
       cards = raw.split("\n").map(line => {
         const [term, answers] = line.split("\t");
         return {
@@ -129,8 +128,11 @@
         };
       });
     }
+
     lastCard = null;
     correctionMode = false;
+    isTransitioning = false;
+
     saveProgress();
     nextCard();
   }
@@ -154,6 +156,8 @@
     current = queue[0];
     lastCard = current;
     correctionMode = false;
+    isTransitioning = false;
+
     renderPrompt(false);
   }
 
@@ -170,6 +174,7 @@
     `;
 
     const input = document.getElementById("answerInput");
+
     setTimeout(() => {
       input.focus();
       input.select();
@@ -181,49 +186,72 @@
   }
 
   function checkAnswer() {
+    if (isTransitioning) return;
+
     const inputEl = document.getElementById("answerInput");
     const input = inputEl.value.trim().toLowerCase();
     const feedback = document.getElementById("feedback");
 
-    // Correction step after a wrong answer
+    // ✅ Correction Mode
     if (correctionMode) {
       if (current.answers.includes(input)) {
         feedback.textContent = "✔ Locked in. You'll see this again.";
         feedback.className = "feedback correct";
+
+        isTransitioning = true;
+        inputEl.disabled = true;
+
         setTimeout(() => {
+          isTransitioning = false;
           saveProgress();
           nextCard();
         }, 700);
       } else {
-        feedback.textContent = "Type the correct answer to continue.";
+        // ✅ Keep showing answers
+        feedback.innerHTML = `
+          Incorrect.<br>
+          Correct answers: <strong>${current.answers.join(", ")}</strong><br>
+          <em>Please type the correct answer to continue.</em>
+        `;
         feedback.className = "feedback incorrect";
       }
       return;
     }
 
-    // Normal checking
+    // ✅ Normal Mode
     if (current.answers.includes(input)) {
       current.streak++;
       feedback.textContent = "Correct!";
       feedback.className = "feedback correct";
+
+      isTransitioning = true;
+      inputEl.disabled = true;
+
       saveProgress();
-      setTimeout(nextCard, 600);
+
+      setTimeout(() => {
+        isTransitioning = false;
+        nextCard();
+      }, 600);
+
     } else {
       current.streak = 0;
       correctionMode = true;
+
       feedback.innerHTML = `
         Incorrect.<br>
         Correct answers: <strong>${current.answers.join(", ")}</strong><br>
         <em>Please type the correct answer to continue.</em>
       `;
       feedback.className = "feedback incorrect";
+
       inputEl.value = "";
       inputEl.focus();
+
       saveProgress();
     }
   }
 
-  // On page load, check for saved session
   window.addEventListener('load', () => {
     const saved = localStorage.getItem('quizletLearn');
     if (saved) {
