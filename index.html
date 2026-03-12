@@ -383,7 +383,7 @@ function showStats() {
 
   const weak = sorted
     .filter(c=>c.wrong>0)
-    .slice(0,10)
+    //.slice(0,10)
     .map(c=>`<li>${c.term} — ${c.wrong} mistakes</li>`)
     .join("");
 
