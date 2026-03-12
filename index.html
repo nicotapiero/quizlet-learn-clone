@@ -3,11 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Quizlet Learn Clone with Save</title>
-
 <style>
-
 body {
   font-family: system-ui, sans-serif;
   background: #f6f7fb;
@@ -15,17 +12,14 @@ body {
   padding: 16px;
   font-size: 18px;
 }
-
 h1 {
   text-align: center;
   margin-bottom: 20px;
 }
-
 .container {
   max-width: 700px;
   margin: auto;
 }
-
 .card {
   background: white;
   padding: 20px;
@@ -33,11 +27,9 @@ h1 {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   margin-bottom: 20px;
 }
-
 .hidden {
   display: none;
 }
-
 textarea {
   width: 100%;
   height: 200px;
@@ -48,7 +40,6 @@ textarea {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
-
 button {
   padding: 14px 18px;
   font-size: 18px;
@@ -60,16 +51,13 @@ button {
   background: #3b82f6;
   color: white;
 }
-
 button:hover {
   background: #2563eb;
 }
-
 .prompt {
   font-size: 28px;
   margin-bottom: 18px;
 }
-
 input[type="text"] {
   width: 100%;
   font-size: 20px;
@@ -78,28 +66,22 @@ input[type="text"] {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
-
 .feedback {
   margin-top: 10px;
   font-weight: bold;
+  min-height: 1.4em;
 }
-
 .correct { color: green; }
 .incorrect { color: red; }
-
 .progress {
   margin-top: 15px;
   color: #555;
 }
-
 .streak {
   margin-top: 8px;
   font-size: 14px;
   color: #666;
 }
-
-/* Preset selector */
-
 .preset-row {
   display: flex;
   gap: 8px;
@@ -107,12 +89,10 @@ input[type="text"] {
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
-
 .preset-row label {
   font-weight: 600;
   white-space: nowrap;
 }
-
 .preset-row select {
   flex: 1;
   font-size: 16px;
@@ -120,11 +100,9 @@ input[type="text"] {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
-
 .preset-row button {
   width: auto;
 }
-
 .divider {
   text-align: center;
   color: #999;
@@ -132,7 +110,6 @@ input[type="text"] {
   font-size: 13px;
   position: relative;
 }
-
 .divider::before,
 .divider::after {
   content: '';
@@ -143,87 +120,62 @@ input[type="text"] {
   vertical-align: middle;
   margin: 0 6px;
 }
-
-/* Mobile tweaks */
-
 @media (max-width: 600px) {
-
-  body {
-    font-size: 17px;
-  }
-
-  h1 {
-    font-size: 24px;
-  }
-
-  .card {
-    padding: 16px;
-  }
-
-  .prompt {
-    font-size: 26px;
-  }
-
+  body { font-size: 17px; }
+  h1 { font-size: 24px; }
+  .card { padding: 16px; }
+  .prompt { font-size: 26px; }
   .preset-row {
     flex-direction: column;
     align-items: stretch;
   }
-
-  .preset-row button {
-    width: 100%;
-  }
-
+  .preset-row button { width: 100%; }
 }
-
 </style>
 </head>
-
 <body>
 
 <h1>Quizlet Learn (Clone with Save)</h1>
 
 <div class="container">
 
-<!-- Paste Mode -->
+  <!-- Paste Mode -->
+  <div class="card" id="pasteCard">
+    <h2>Paste Quizlet Set</h2>
+    <div class="preset-row">
+      <label for="presetSelect">Preset:</label>
+      <select id="presetSelect">
+        <option value="">— choose a preset set —</option>
+      </select>
+      <button onclick="loadPreset()">Load</button>
+    </div>
+    <div class="divider">or paste your own</div>
+    <p>Format: <code>term[TAB]answer1;answer2</code></p>
+    <textarea id="dataInput" placeholder="adult	大人;おとな"></textarea>
+    <button onclick="startLearn(false)">Start Learn Mode</button>
+  </div>
 
-<div class="card" id="pasteCard">
-
-<h2>Paste Quizlet Set</h2>
-
-<div class="preset-row">
-<label for="presetSelect">Preset:</label>
-<select id="presetSelect">
-<option value="">— choose a preset set —</option>
-</select>
-<button onclick="loadPreset()">Load</button>
-</div>
-
-<div class="divider">or paste your own</div>
-
-<p>Format: <code>term[TAB]answer1;answer2</code></p>
-
-<textarea id="dataInput" placeholder="adult	大人;おとな"></textarea>
-
-<button onclick="startLearn(false)">Start Learn Mode</button>
-
-</div>
-
-<!-- Learn Mode -->
-
-<div class="card hidden" id="learnCard">
-
-<h2>Learn Mode</h2>
-
-<div id="learnArea"></div>
-
-</div>
+  <!-- Learn Mode — static shell, never rebuilt -->
+  <div class="card hidden" id="learnCard">
+    <h2>Learn Mode</h2>
+    <div id="learnArea">
+      <!-- Persistent DOM — only text content is swapped, never innerHTML -->
+      <div class="prompt" id="promptText"></div>
+      <input type="text" id="answerInput" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false">
+      <button id="checkBtn">Check</button>
+      <div class="feedback" id="feedback"></div>
+      <div class="streak" id="streakText"></div>
+      <div class="progress" id="progressText"></div>
+    </div>
+    <!-- Stats view, hidden until session ends -->
+    <div id="statsArea" class="hidden"></div>
+  </div>
 
 </div>
 
 <script src="sets.js"></script>
-
 <script>
-
 let cards = [];
 let queue = [];
 let current = null;
@@ -231,9 +183,23 @@ let lastCard = null;
 let correctionMode = false;
 let isTransitioning = false;
 
+// Grab persistent elements once
+const answerInput  = document.getElementById("answerInput");
+const checkBtn     = document.getElementById("checkBtn");
+const promptText   = document.getElementById("promptText");
+const feedback     = document.getElementById("feedback");
+const streakText   = document.getElementById("streakText");
+const progressText = document.getElementById("progressText");
+const learnArea    = document.getElementById("learnArea");
+const statsArea    = document.getElementById("statsArea");
+
+checkBtn.addEventListener("click", checkAnswer);
+answerInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") checkAnswer();
+});
+
 function populatePresets() {
   const select = document.getElementById("presetSelect");
-
   PRESET_SETS.forEach((set, i) => {
     const opt = document.createElement("option");
     opt.value = i;
@@ -243,32 +209,15 @@ function populatePresets() {
 }
 
 function loadPreset() {
-
   const select = document.getElementById("presetSelect");
   const idx = select.value;
-
   if (idx === "") return;
-
   document.getElementById("dataInput").value = PRESET_SETS[idx].data;
 }
 
 function showLearnMode() {
-
   document.getElementById("pasteCard").classList.add("hidden");
-  const learnCard = document.getElementById("learnCard");
-  learnCard.classList.remove("hidden");
-
-  // Scroll the prompt into view after it's rendered
-  setTimeout(() => {
-    const prompt = document.querySelector("#learnArea .prompt");
-    if (prompt) {
-      prompt.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    }
-  }, 50);
-
+  document.getElementById("learnCard").classList.remove("hidden");
 }
 
 function saveProgress() {
@@ -276,11 +225,8 @@ function saveProgress() {
 }
 
 function loadProgress() {
-
   const saved = localStorage.getItem('quizletLearn');
-
   if (!saved) return false;
-
   try {
     cards = JSON.parse(saved);
     return true;
@@ -290,23 +236,16 @@ function loadProgress() {
 }
 
 function rebuildQueue() {
-
   queue = cards.filter(c => c.streak < 2);
   queue.sort(() => Math.random() - 0.5);
 }
 
 function startLearn(fromSaved) {
-
   if (!fromSaved) {
-
     const raw = document.getElementById("dataInput").value.trim();
-
     if (!raw) return;
-
     cards = raw.split("\n").map(line => {
-
       const [term, answers] = line.split("\t");
-
       return {
         term: term.trim(),
         answers: answers.split(";").map(a => a.trim().toLowerCase()),
@@ -314,9 +253,7 @@ function startLearn(fromSaved) {
         correct: 0,
         wrong: 0
       };
-
     });
-
   }
 
   lastCard = null;
@@ -324,22 +261,21 @@ function startLearn(fromSaved) {
   isTransitioning = false;
 
   saveProgress();
-
   showLearnMode();
+
+  // Focus the persistent input once — this opens the keyboard.
+  // From here on we never destroy the element, so the keyboard stays open.
+  answerInput.focus();
 
   nextCard();
 }
 
 function nextCard() {
-
   rebuildQueue();
 
   if (queue.length === 0) {
-
     showStats();
-
     localStorage.removeItem('quizletLearn');
-
     return;
   }
 
@@ -356,166 +292,100 @@ function nextCard() {
 }
 
 function renderPrompt() {
-  document.getElementById("learnArea").innerHTML = `
-    <div class="prompt">${current.term}</div>
+  // ── Only update text/state — the <input> is never touched ──
+  promptText.textContent = current.term;
+  feedback.textContent = "";
+  feedback.className = "feedback";
+  streakText.textContent = `Progress: ${current.streak} / 2`;
+  progressText.textContent = `Remaining cards: ${queue.length}`;
 
-    <input type="text" id="answerInput">
+  // Re-enable input in case it was disabled after a correct answer
+  answerInput.disabled = false;
+  answerInput.value = "";
 
-    <button onclick="checkAnswer()">Check</button>
-
-    <div class="feedback" id="feedback"></div>
-
-    <div class="streak">Progress: ${current.streak} / 2</div>
-
-    <div class="progress">Remaining cards: ${queue.length}</div>
-  `;
-
-const input = document.getElementById("answerInput");
-
-// Only focus if:
-// - this is the first card OR
-// - we're in correction mode OR
-// - user just finished a card and keyboard was already open
-if (correctionMode || !isTransitioning) {
-  setTimeout(() => {
-    input.focus();    // keeps keyboard open
-    input.select();
-  }, 50);
-}
-
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") checkAnswer();
-  });
-
-  // Scroll prompt into view
-  setTimeout(() => {
-    const prompt = document.querySelector("#learnArea .prompt");
-    if (prompt) {
-      prompt.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, 50);
+  // .select() keeps the cursor ready without closing/reopening the keyboard
+  answerInput.select();
 }
 
 function showStats() {
+  const totalCorrect = cards.reduce((a, c) => a + c.correct, 0);
+  const totalWrong   = cards.reduce((a, c) => a + c.wrong, 0);
+  const total        = totalCorrect + totalWrong;
+  const accuracy     = total ? Math.round((totalCorrect / total) * 100) : 100;
 
-  const totalCorrect = cards.reduce((a,c)=>a+c.correct,0);
-  const totalWrong = cards.reduce((a,c)=>a+c.wrong,0);
-  const total = totalCorrect + totalWrong;
-
-  const accuracy = total ? Math.round((totalCorrect/total)*100) : 100;
-
-  const sorted = [...cards].sort((a,b)=>b.wrong-a.wrong);
-
+  const sorted = [...cards].sort((a, b) => b.wrong - a.wrong);
   const weak = sorted
-    .filter(c=>c.wrong>0)
-    //.slice(0,10)
-    .map(c=>`<li>${c.term} — ${c.wrong} mistakes</li>`)
+    .filter(c => c.wrong > 0)
+    .map(c => `<li>${c.term} — ${c.wrong} mistakes</li>`)
     .join("");
 
-  const perfect = cards
-    .filter(c=>c.wrong===0)
-    .length;
+  const perfect = cards.filter(c => c.wrong === 0).length;
 
-  document.getElementById("learnArea").innerHTML = `
-
+  // Hide the input area, show stats
+  learnArea.classList.add("hidden");
+  statsArea.classList.remove("hidden");
+  statsArea.innerHTML = `
     <h2>📊 Session Stats</h2>
-
     <p><strong>Accuracy:</strong> ${accuracy}%</p>
     <p><strong>Correct answers:</strong> ${totalCorrect}</p>
     <p><strong>Mistakes:</strong> ${totalWrong}</p>
-
     <p><strong>Perfect cards:</strong> ${perfect} / ${cards.length}</p>
-
     <h3>Weakest Cards</h3>
-
-    ${
-      weak
-      ? `<ul>${weak}</ul>`
-      : "<p>No mistakes 🎉</p>"
-    }
-
+    ${weak ? `<ul>${weak}</ul>` : "<p>No mistakes 🎉</p>"}
     <button onclick="location.reload()">Study Again</button>
-
   `;
-
 }
 
 function checkAnswer() {
-
   if (isTransitioning) return;
 
-  const inputEl = document.getElementById("answerInput");
-
-  const input = inputEl.value.trim().toLowerCase();
-
-  const feedback = document.getElementById("feedback");
+  const input    = answerInput.value.trim().toLowerCase();
 
   if (correctionMode) {
-
     if (current.answers.includes(input)) {
-
       feedback.textContent = "✔ Locked in. You'll see this again.";
       feedback.className = "feedback correct";
 
       isTransitioning = true;
-
-      inputEl.disabled = true;
-
-      // DO NOT count this as correct
-      // The mistake was already recorded
+      answerInput.disabled = true;
 
       setTimeout(() => {
-
         isTransitioning = false;
-
+        answerInput.disabled = false;
         saveProgress();
-
         nextCard();
-
       }, 700);
-
     } else {
-
       feedback.innerHTML = `
         Incorrect.<br>
         Correct answers: <strong>${current.answers.join(", ")}</strong><br>
         <em>Please type the correct answer to continue.</em>
       `;
-
       feedback.className = "feedback incorrect";
-
     }
-
     return;
   }
 
   if (current.answers.includes(input)) {
-
     current.streak++;
-
+    current.correct++;
     feedback.textContent = "Correct!";
-
     feedback.className = "feedback correct";
 
     isTransitioning = true;
-
-    inputEl.disabled = true;
+    answerInput.disabled = true;
 
     saveProgress();
 
     setTimeout(() => {
-
       isTransitioning = false;
-
+      answerInput.disabled = false;
       nextCard();
-
     }, 600);
 
   } else {
-
     current.streak = 0;
     current.wrong++;
-
     correctionMode = true;
 
     feedback.innerHTML = `
@@ -523,44 +393,30 @@ function checkAnswer() {
       Correct answers: <strong>${current.answers.join(", ")}</strong><br>
       <em>Please type the correct answer to continue.</em>
     `;
-
     feedback.className = "feedback incorrect";
 
-    inputEl.value = "";
-
-    inputEl.focus();
-
+    answerInput.value = "";
+    // No need to call .focus() — input was never blurred
     saveProgress();
   }
-
 }
 
+// Init
 populatePresets();
 
 window.addEventListener('load', () => {
-
   const saved = localStorage.getItem('quizletLearn');
-
   if (saved) {
-
     if (confirm("Resume previous session?")) {
-
       if (loadProgress()) {
-
         showLearnMode();
-
         startLearn(true);
-
         return;
       }
     }
-
     localStorage.removeItem('quizletLearn');
   }
-
 });
-
 </script>
-
 </body>
 </html>
