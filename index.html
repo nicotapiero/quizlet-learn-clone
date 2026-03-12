@@ -264,8 +264,7 @@ input[type="text"] {
     streakText.textContent = `Progress: ${current.streak} / 2`;
     progressText.textContent = `Remaining cards: ${queue.length}`;
 
-    // readOnly instead of disabled — keeps keyboard alive on iOS/Android
-    answerInput.readOnly = false;
+    // Keep keyboard alive — never touch readOnly or disabled
     answerInput.value = "";
     answerInput.focus();
   }
@@ -287,8 +286,6 @@ input[type="text"] {
         feedback.className = "feedback correct";
 
         isTransitioning = true;
-        // readOnly instead of disabled — keyboard stays up
-        answerInput.readOnly = true;
         answerInput.value = "";
 
         saveProgress();
@@ -313,8 +310,6 @@ input[type="text"] {
       feedback.className = "feedback correct";
 
       isTransitioning = true;
-      // readOnly instead of disabled — keyboard stays up
-      answerInput.readOnly = true;
       answerInput.value = "";
 
       saveProgress();
