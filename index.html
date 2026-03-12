@@ -373,10 +373,13 @@ function renderPrompt() {
 
   const input = document.getElementById("answerInput");
 
-  setTimeout(() => {
+setTimeout(() => {
+  // Only focus if not transitioning and correction mode is active
+  if (!isTransitioning || correctionMode) {
     input.focus();
     input.select();
-  }, 0);
+  }
+}, 50);
 
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") checkAnswer();
