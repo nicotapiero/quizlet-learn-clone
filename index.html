@@ -258,12 +258,15 @@ function showLearnMode() {
   const learnCard = document.getElementById("learnCard");
   learnCard.classList.remove("hidden");
 
-  // Scroll learn area to top (great for mobile)
+  // Scroll the prompt into view after it's rendered
   setTimeout(() => {
-    learnCard.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
+    const prompt = document.querySelector("#learnArea .prompt");
+    if (prompt) {
+      prompt.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
   }, 50);
 
 }
@@ -379,11 +382,14 @@ function renderPrompt() {
     if (e.key === "Enter") checkAnswer();
   });
 
-  setTimeout(() => {
-  document.getElementById("learnCard").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+setTimeout(() => {
+  const prompt = document.querySelector("#learnArea .prompt");
+  if (prompt) {
+    prompt.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
 }, 50);
 
 }
