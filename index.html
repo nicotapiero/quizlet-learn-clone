@@ -297,7 +297,9 @@ function startLearn(fromSaved) {
       return {
         term: term.trim(),
         answers: answers.split(";").map(a => a.trim().toLowerCase()),
-        streak: 0
+        streak: 0,
+        correct: 0,
+        wrong: 0
       };
 
     });
@@ -321,10 +323,7 @@ function nextCard() {
 
   if (queue.length === 0) {
 
-    document.getElementById("learnArea").innerHTML = `
-      <h3>🎉 All cards mastered!</h3>
-      <p>You answered every card correctly twice.</p>
-    `;
+    showStats();
 
     localStorage.removeItem('quizletLearn');
 
@@ -372,6 +371,50 @@ function renderPrompt() {
 
 }
 
+function showStats() {
+
+  const totalCorrect = cards.reduce((a,c)=>a+c.correct,0);
+  const totalWrong = cards.reduce((a,c)=>a+c.wrong,0);
+  const total = totalCorrect + totalWrong;
+
+  const accuracy = total ? Math.round((totalCorrect/total)*100) : 100;
+
+  const sorted = [...cards].sort((a,b)=>b.wrong-a.wrong);
+
+  const weak = sorted
+    .filter(c=>c.wrong>0)
+    .slice(0,10)
+    .map(c=>`<li>${c.term} — ${c.wrong} mistakes</li>`)
+    .join("");
+
+  const perfect = cards
+    .filter(c=>c.wrong===0)
+    .length;
+
+  document.getElementById("learnArea").innerHTML = `
+
+    <h2>📊 Session Stats</h2>
+
+    <p><strong>Accuracy:</strong> ${accuracy}%</p>
+    <p><strong>Correct answers:</strong> ${totalCorrect}</p>
+    <p><strong>Mistakes:</strong> ${totalWrong}</p>
+
+    <p><strong>Perfect cards:</strong> ${perfect} / ${cards.length}</p>
+
+    <h3>Weakest Cards</h3>
+
+    ${
+      weak
+      ? `<ul>${weak}</ul>`
+      : "<p>No mistakes 🎉</p>"
+    }
+
+    <button onclick="location.reload()">Study Again</button>
+
+  `;
+
+}
+
 function checkAnswer() {
 
   if (isTransitioning) return;
@@ -385,6 +428,8 @@ function checkAnswer() {
   if (correctionMode) {
 
     if (current.answers.includes(input)) {
+      current.streak++;
+      current.correct++;
 
       feedback.textContent = "✔ Locked in. You'll see this again.";
       feedback.className = "feedback correct";
@@ -443,6 +488,7 @@ function checkAnswer() {
   } else {
 
     current.streak = 0;
+    current.wrong++;
 
     correctionMode = true;
 
