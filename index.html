@@ -195,7 +195,10 @@ const statsArea    = document.getElementById("statsArea");
 
 checkBtn.addEventListener("click", checkAnswer);
 answerInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") checkAnswer();
+  if (e.key === "Enter") {
+    e.preventDefault();   // prevent any form-submit ghost events
+    checkAnswer();
+  }
 });
 
 function populatePresets() {
@@ -347,11 +350,11 @@ function checkAnswer() {
       feedback.className = "feedback correct";
 
       isTransitioning = true;
-      answerInput.disabled = true;
+      answerInput.readOnly = true;
 
       setTimeout(() => {
         isTransitioning = false;
-        answerInput.disabled = false;
+        answerInput.readOnly = false;
         saveProgress();
         nextCard();
       }, 700);
@@ -373,13 +376,13 @@ function checkAnswer() {
     feedback.className = "feedback correct";
 
     isTransitioning = true;
-    answerInput.disabled = true;
+    answerInput.readOnly = true;
 
     saveProgress();
 
     setTimeout(() => {
       isTransitioning = false;
-      answerInput.disabled = false;
+      answerInput.readOnly = false;
       nextCard();
     }, 600);
 
@@ -395,8 +398,15 @@ function checkAnswer() {
     `;
     feedback.className = "feedback incorrect";
 
+    // Block input briefly so the same Enter that triggered the wrong answer
+    // doesn't immediately fire checkAnswer again in correction mode
+    answerInput.readOnly = true;
     answerInput.value = "";
-    // No need to call .focus() — input was never blurred
+    setTimeout(() => {
+      answerInput.readOnly = false;
+      answerInput.select();
+    }, 50);
+
     saveProgress();
   }
 }
