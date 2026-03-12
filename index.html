@@ -163,7 +163,7 @@ input[type="text"] {
       <div class="prompt" id="promptText"></div>
       <input type="text" id="answerInput" autocomplete="off" autocorrect="off"
              autocapitalize="off" spellcheck="false">
-      <button id="checkBtn">Check</button>
+      <button id="checkBtn" tabindex="-1">Check</button>
       <div class="feedback" id="feedback"></div>
       <div class="streak" id="streakText"></div>
       <div class="progress" id="progressText"></div>
@@ -193,6 +193,7 @@ const progressText = document.getElementById("progressText");
 const learnArea    = document.getElementById("learnArea");
 const statsArea    = document.getElementById("statsArea");
 
+checkBtn.addEventListener("mousedown", e => e.preventDefault());
 checkBtn.addEventListener("click", checkAnswer);
 answerInput.addEventListener("keydown", e => {
   if (e.key === "Enter") {
