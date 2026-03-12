@@ -202,9 +202,15 @@ input[type="text"] {
   </div>
 
   <!-- Learn Mode -->
+  <!-- Replace the learnCard div content with a persistent shell -->
   <div class="card hidden" id="learnCard">
     <h2>Learn Mode</h2>
-    <div id="learnArea"></div>
+    <div class="prompt" id="promptText"></div>
+    <input type="text" id="answerInput" autocomplete="off" autocorrect="off" autocapitalize="off" />
+    <button onclick="checkAnswer()">Check</button>
+    <div class="feedback" id="feedback"></div>
+    <div class="streak" id="streakText"></div>
+    <div class="progress" id="progressText"></div>
   </div>
 </div>
 
@@ -319,25 +325,16 @@ input[type="text"] {
   }
 
   function renderPrompt() {
-    document.getElementById("learnArea").innerHTML = `
-      <div class="prompt">${current.term}</div>
-      <input type="text" id="answerInput" />
-      <button onclick="checkAnswer()">Check</button>
-      <div class="feedback" id="feedback"></div>
-      <div class="streak">Progress: ${current.streak} / 2</div>
-      <div class="progress">Remaining cards: ${queue.length}</div>
-    `;
-
+    document.getElementById("promptText").textContent = current.term;
+    document.getElementById("feedback").textContent = "";
+    document.getElementById("feedback").className = "feedback";
+    document.getElementById("streakText").textContent = `Progress: ${current.streak} / 2`;
+    document.getElementById("progressText").textContent = `Remaining cards: ${queue.length}`;
+  
     const input = document.getElementById("answerInput");
-
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 0);
-
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") checkAnswer();
-    });
+    input.value = "";
+    input.disabled = false;
+    input.focus();
   }
 
   function restart() {
@@ -413,6 +410,11 @@ input[type="text"] {
 
   // Init
   populatePresets();
+
+  // Remove the input.addEventListener from renderPrompt entirely.
+  document.getElementById("answerInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") checkAnswer();
+  });
 
   window.addEventListener('load', () => {
     const saved = localStorage.getItem('quizletLearn');
