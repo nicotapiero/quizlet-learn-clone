@@ -104,6 +104,42 @@
       vertical-align: middle;
       margin: 0 6px;
     }
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+        font-size: 16px;
+      }
+    
+      h1, h2 {
+        font-size: 22px;
+      }
+    
+      textarea {
+        height: 200px;
+      }
+    
+      input[type="text"] {
+        font-size: 16px;
+        padding: 6px;
+      }
+    
+      button {
+        width: 100%;
+        font-size: 16px;
+        padding: 10px;
+      }
+    
+      .preset-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    
+      .divider::before,
+      .divider::after {
+        width: 30%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -200,7 +236,8 @@
         return {
           term: term.trim(),
           answers: answers.split(";").map(a => a.trim().toLowerCase()),
-          streak: 0
+          streak: 0,
+          mistakes: 0      // Track mistakes
         };
       });
     }
@@ -218,10 +255,19 @@
     rebuildQueue();
 
     if (queue.length === 0) {
-      document.getElementById("learnArea").innerHTML = `
-        <h3>🎉 All cards mastered!</h3>
-        <p>You answered every card correctly twice.</p>
-      `;
+      // Sort cards by mistakes, descending
+      const stats = [...cards].sort((a, b) => b.mistakes - a.mistakes);
+    
+      let statsHTML = `<h3>🎉 All cards mastered!</h3>`;
+      statsHTML += `<p>Here's a summary of your mistakes:</p>`;
+      statsHTML += `<ul>`;
+      stats.forEach(c => {
+        statsHTML += `<li>${c.term} — mistakes: ${c.mistakes}</li>`;
+      });
+      statsHTML += `</ul>`;
+      statsHTML += `<button onclick="restart()">Restart</button>`;
+    
+      document.getElementById("learnArea").innerHTML = statsHTML;
       localStorage.removeItem('quizletLearn');
       return;
     }
@@ -309,6 +355,7 @@
     } else {
       current.streak = 0;
       correctionMode = true;
+      current.mistakes++;  // <-- Track mistake
 
       feedback.innerHTML = `
         Incorrect.<br>
