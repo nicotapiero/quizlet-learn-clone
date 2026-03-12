@@ -370,12 +370,18 @@ function renderPrompt() {
     <div class="progress">Remaining cards: ${queue.length}</div>
   `;
 
-  const input = document.getElementById("answerInput");
+const input = document.getElementById("answerInput");
 
-  // Optional: select text if already typed (no focus)
+// Only focus if:
+// - this is the first card OR
+// - we're in correction mode OR
+// - user just finished a card and keyboard was already open
+if (correctionMode || !isTransitioning) {
   setTimeout(() => {
+    input.focus();    // keeps keyboard open
     input.select();
-  }, 0);
+  }, 50);
+}
 
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") checkAnswer();
