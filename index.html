@@ -266,11 +266,9 @@ input[type="text"] {
 
     // Keep keyboard alive — never touch readOnly or disabled
     answerInput.value = "";
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        promptText.scrollIntoView({ behavior: "instant", block: "start" });
-      });
-    });
+    setTimeout(() => {
+      promptText.scrollIntoView({ behavior: "instant", block: "start" });
+    }, 0);
     answerInput.focus();
   }
 
