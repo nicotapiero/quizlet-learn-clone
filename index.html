@@ -255,7 +255,17 @@ function loadPreset() {
 function showLearnMode() {
 
   document.getElementById("pasteCard").classList.add("hidden");
-  document.getElementById("learnCard").classList.remove("hidden");
+  const learnCard = document.getElementById("learnCard");
+  learnCard.classList.remove("hidden");
+
+  // Scroll learn area to top (great for mobile)
+  setTimeout(() => {
+    learnCard.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }, 50);
+
 }
 
 function saveProgress() {
@@ -368,6 +378,13 @@ function renderPrompt() {
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") checkAnswer();
   });
+
+  setTimeout(() => {
+  document.getElementById("learnCard").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}, 50);
 
 }
 
