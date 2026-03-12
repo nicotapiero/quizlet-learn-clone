@@ -356,7 +356,6 @@ function nextCard() {
 }
 
 function renderPrompt() {
-
   document.getElementById("learnArea").innerHTML = `
     <div class="prompt">${current.term}</div>
 
@@ -373,28 +372,22 @@ function renderPrompt() {
 
   const input = document.getElementById("answerInput");
 
-setTimeout(() => {
-  // Only focus if not transitioning and correction mode is active
-  if (!isTransitioning || correctionMode) {
-    input.focus();
+  // Optional: select text if already typed (no focus)
+  setTimeout(() => {
     input.select();
-  }
-}, 50);
+  }, 0);
 
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") checkAnswer();
   });
 
-setTimeout(() => {
-  const prompt = document.querySelector("#learnArea .prompt");
-  if (prompt) {
-    prompt.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  }
-}, 50);
-
+  // Scroll prompt into view
+  setTimeout(() => {
+    const prompt = document.querySelector("#learnArea .prompt");
+    if (prompt) {
+      prompt.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, 50);
 }
 
 function showStats() {
