@@ -310,17 +310,21 @@ input[type="text"] {
 
     if (current.answers.includes(input)) {
       current.streak++;
-      feedback.textContent = "Correct!";
+    
+      feedback.innerHTML = `
+        ✔ Correct!<br>
+        Accepted answers: <strong>${current.answers.join(", ")}</strong>
+      `;
       feedback.className = "feedback correct";
-
+    
       isTransitioning = true;
       answerInput.value = "";
-
+    
       saveProgress();
       setTimeout(() => {
         isTransitioning = false;
         nextCard();
-      }, 600);
+      }, 900); // slightly longer so user can read answers
 
     } else {
       current.streak = 0;
