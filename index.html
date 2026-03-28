@@ -286,7 +286,11 @@ input[type="text"] {
 
     if (correctionMode) {
       if (current.answers.includes(input)) {
-        feedback.textContent = "✔ Locked in. You'll see this again.";
+        feedback.innerHTML = `
+          ✔ Locked in.<br>
+          Accepted answers: <strong>${current.answers.join(", ")}</strong><br>
+          <em>You'll see this again.</em>
+        `;
         feedback.className = "feedback correct";
 
         isTransitioning = true;
